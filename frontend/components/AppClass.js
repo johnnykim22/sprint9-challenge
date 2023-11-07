@@ -63,7 +63,14 @@ export default class AppClass extends React.Component {
 
   onSubmit = (evt) => {
     evt.preventDefault();
-    const { index, steps, email } = this.state;
+
+    const { email, index, steps } = this.state;
+
+    if (!email) {
+      this.setState({ message: "Ouch: email is required" });
+      return;
+    }
+
     const { x, y } = this.getXY(index);
 
     const payload = {
@@ -81,23 +88,19 @@ export default class AppClass extends React.Component {
       body: JSON.stringify(payload),
     })
       .then((response) => {
-        if (!response.ok) {
-          throw new Error("Unprocessable Entity");
-        }
+        
         return response.json();
       })
       .then((data) => {
         this.setState({
-          message: `Thanks for submitting your email, ${email}! lady win #${steps}`,
-          submittedEmail: email,
+          message: data.message,
           email: "",
+          steps: steps,
         });
       })
       .catch((error) => {
-        this.setState({ message: error.toString() });
-      })
-      .finally(() => {
-        this.setState({ email: "" });
+        console.log(error)
+        this.setState({ message: error.message });
       });
   };
 
@@ -120,11 +123,15 @@ export default class AppClass extends React.Component {
             You moved {steps} {steps === 1 ? "time" : "times"}
           </h3>
           {submittedEmail && <p>Last submitted email: {submittedEmail}</p>}
-          <h3 id="message">{message}</h3>
+          
         </div>
         <div id="grid">
           {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(this.renderSquare)}
         </div>
+        <div className="info">
+        <h3 id="message">{message}</h3>
+      </div>
+
         <div id="keypad">
           <button onClick={() => this.move("left")} id="left">
             LEFT
